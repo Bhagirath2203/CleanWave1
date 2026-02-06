@@ -21,7 +21,7 @@ public class Report {
     
     private String imageDataUrl;
     
-    private String by; // Reporter username/email
+    private String by; // Reporter username.email
     
     private ReportStatus status = ReportStatus.OPEN;
     
