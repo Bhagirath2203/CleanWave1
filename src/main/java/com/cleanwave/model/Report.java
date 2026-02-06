@@ -1,4 +1,4 @@
-package com.cleanwave.model;
+package src.main.java.com.cleanwave.model;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;

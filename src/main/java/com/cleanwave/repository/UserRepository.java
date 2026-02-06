@@ -1,9 +1,11 @@
-package com.cleanwave.repository;
+package src.main.java.com.cleanwave.repository;
 
-import com.cleanwave.model.User;
-import com.cleanwave.model.User.UserRole;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
+
+import src.main.java.com.cleanwave.model.User;
+import src.main.java.com.cleanwave.model.User.UserRole;
+
 import java.util.Optional;
 import java.util.List;
 

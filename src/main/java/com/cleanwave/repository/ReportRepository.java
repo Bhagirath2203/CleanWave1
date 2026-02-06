@@ -1,9 +1,11 @@
-package com.cleanwave.repository;
+package src.main.java.com.cleanwave.repository;
 
-import com.cleanwave.model.Report;
-import com.cleanwave.model.Report.ReportStatus;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
+
+import src.main.java.com.cleanwave.model.Report;
+import src.main.java.com.cleanwave.model.Report.ReportStatus;
+
 import java.util.List;
 
 @Repository
