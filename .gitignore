@@ -1,7 +1,16 @@
 # ===== Maven / Java build =====
 target/
+src/target/
 *.class
+*.jar
+*.jar.original
 *.log
+*.war
+*.ear
+pom.xml.bak
+.classpath
+.project
+.factorypath
 
 # ===== IDEs =====
 .idea/
