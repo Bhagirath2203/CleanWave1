@@ -12,19 +12,38 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*")
 public class AuthController {
-    
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @Autowired
     private UserService userService;
-    
+
     @PostMapping("/signup")
-    public ResponseEntity<AuthResponse> signup(@Valid @RequestBody SignupRequest request) {
-        return ResponseEntity.ok(userService.signup(request));
+    public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
+        userService.signup(request);
+        return ResponseEntity.ok(Map.of("message", "User registered"));
     }
-    
+
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.ok(userService.login(request));
+    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+
+        Authentication auth = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
+        );
+
+        String token = jwtUtil.generateToken(
+                request.getEmail(),
+                auth.getAuthorities().iterator().next().getAuthority()
+        );
+
+        return ResponseEntity.ok(new AuthResponse(token));
     }
 }

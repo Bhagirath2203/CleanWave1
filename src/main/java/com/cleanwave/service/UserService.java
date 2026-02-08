@@ -16,86 +16,32 @@ import java.util.List;
 
 @Service
 public class UserService {
-    
+
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private PasswordEncoder passwordEncoder;
-    
-    @Autowired
-    private JwtUtil jwtUtil;
-    
-    public AuthResponse signup(SignupRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new BadRequestException("Email already exists");
+
+    public void signup(SignupRequest request) {
+
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new BadRequestException("Email already registered");
         }
-        
+
+        Roles role;
+        try {
+            role = Roles.valueOf(request.getRole().toUpperCase());
+        } catch (Exception e) {
+            throw new BadRequestException("Invalid role: " + request.getRole());
+        }
+
         User user = new User();
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        
-        // Set role
-        if (request.getRole() != null) {
-            try {
-                user.setRole(User.UserRole.valueOf(request.getRole().toUpperCase()));
-            } catch (IllegalArgumentException e) {
-                user.setRole(User.UserRole.CITIZEN);
-            }
-        } else {
-            user.setRole(User.UserRole.CITIZEN);
-        }
-        
-        if (user.getRole() == null) {
-            throw new BadRequestException("Unable to set user role");
-        }
-        
-        user = userRepository.save(user);
-        
-        String token = jwtUtil.generateToken(
-                new org.springframework.security.core.userdetails.User(
-                        user.getEmail(),
-                        user.getPassword(),
-                        org.springframework.security.core.authority.AuthorityUtils
-                                .createAuthorityList("ROLE_" + user.getRole().name())
-                )
-        );
-        
-        return new AuthResponse(token, user.getEmail(), user.getUsername(), user.getRole().name());
-    }
-    
-    public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
-        
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new UnauthorizedException("Invalid credentials");
-        }
-        
-        String token = jwtUtil.generateToken(
-                new org.springframework.security.core.userdetails.User(
-                        user.getEmail(),
-                        user.getPassword(),
-                        org.springframework.security.core.authority.AuthorityUtils
-                                .createAuthorityList("ROLE_" + user.getRole().name())
-                )
-        );
-        
-        return new AuthResponse(token, user.getEmail(), user.getUsername(), user.getRole().name());
-    }
-    
-    public List<User> getAllWorkers() {
-        return userRepository.findByRole(User.UserRole.WORKER);
-    }
-    
-    public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UnauthorizedException("User not found"));
-    }
-    
-    public User getUserById(String id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new UnauthorizedException("User not found"));
+        user.setRole(role);
+
+        userRepository.save(user);
     }
 }

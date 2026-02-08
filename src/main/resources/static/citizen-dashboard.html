@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citizen Dashboard - CleanWave</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>🌊 CleanWave</h1>
+            </div>
+            <div class="nav-links">
+                <span id="userEmail"></span>
+                <button onclick="logout()" class="btn btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="container">
+            <h1>Citizen Dashboard</h1>
+            
+            <div class="dashboard-actions">
+                <button onclick="showReportModal()" class="btn btn-primary">📝 Report New Issue</button>
+                <button onclick="showChatbot()" class="btn btn-secondary">🤖 AI Assistant</button>
+            </div>
+
+            <div class="reports-section">
+                <h2>My Reports</h2>
+                <div id="reportsContainer" class="reports-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeReportModal()">&times;</span>
+            <h2>Report New Issue</h2>
+            <form id="reportForm">
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category" required>
+                        <option value="">Select Category</option>
+                        <option value="Road Damage">Road Damage</option>
+                        <option value="Waste Management">Waste Management</option>
+                        <option value="Street Light">Street Light</option>
+                        <option value="Water Supply">Water Supply</option>
+                        <option value="Drainage">Drainage</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="image">Upload Photo</label>
+                    <input type="file" id="image" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="useCurrentLocation" checked> Use Current Location
+                    </label>
+                </div>
+                <div id="locationInfo" class="info-box"></div>
+                <button type="submit" class="btn btn-primary btn-block">Submit Report</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Chatbot Modal -->
+    <div id="chatbotModal" class="modal">
+        <div class="modal-content chatbot-modal">
+            <span class="close" onclick="closeChatbot()">&times;</span>
+            <h2>🤖 AI Assistant</h2>
+            <div id="chatMessages" class="chat-messages"></div>
+            <div class="chat-input-container">
+                <input type="text" id="chatInput" placeholder="Type your message...">
+                <button onclick="sendMessage()" class="btn btn-primary">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/config.js"></script>
+    <script src="/js/citizen-dashboard.js"></script>
+</body>
+</html>

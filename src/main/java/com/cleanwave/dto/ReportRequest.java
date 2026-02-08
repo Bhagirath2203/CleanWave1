@@ -13,11 +13,12 @@ public class ReportRequest {
     private String category;
     
     @NotBlank(message = "Description is required")
-    @Size(min = 10, message = "Description must be at least 10 characters long")
+    @Size(min = 10, max = 1000, message = "Description must be between 10 and 1000 characters")
     private String description;
     
     @NotNull(message = "Location is required")
     private Location location;
     
+    @Size(max = 7000000, message = "Image too large (max 5MB)")
     private String imageDataUrl;
 }

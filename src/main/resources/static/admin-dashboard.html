@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - CleanWave</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>🌊 CleanWave</h1>
+            </div>
+            <div class="nav-links">
+                <span id="userEmail"></span>
+                <button onclick="logout()" class="btn btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="container">
+            <h1>Admin Dashboard</h1>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Reports</h3>
+                    <p id="totalReports" class="stat-number">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Open Reports</h3>
+                    <p id="openReports" class="stat-number">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>In Progress</h3>
+                    <p id="inProgressReports" class="stat-number">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Closed</h3>
+                    <p id="closedReports" class="stat-number">0</p>
+                </div>
+            </div>
+
+            <div class="reports-section">
+                <h2>All Reports</h2>
+                <div class="filter-section">
+                    <select id="statusFilter" onchange="filterReports()">
+                        <option value="">All Status</option>
+                        <option value="OPEN">Open</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="CLOSED">Closed</option>
+                    </select>
+                </div>
+                <div id="reportsContainer" class="reports-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assign Worker Modal -->
+    <div id="assignModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAssignModal()">&times;</span>
+            <h2>Assign Worker</h2>
+            <form id="assignForm">
+                <input type="hidden" id="reportId">
+                <div class="form-group">
+                    <label for="workerSelect">Select Worker</label>
+                    <select id="workerSelect" required></select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Assign</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/config.js"></script>
+    <script src="/js/admin-dashboard.js"></script>
+</body>
+</html>
