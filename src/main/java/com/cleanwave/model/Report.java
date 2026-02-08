@@ -1,44 +1,61 @@
 package com.cleanwave.model;
 
-import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.time.LocalDateTime;
 
-@Data
 @Document(collection = "reports")
 public class Report {
 
+    public enum ReportStatus {
+        OPEN, IN_PROGRESS, CLOSED
+    }
+
     @Id
     private String id;
-
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private LocalDateTime resolvedAt;
 
     private String category;
     private String description;
     private Location location;
     private String imageDataUrl;
-
-    private String createdBy;   // reporter email
+    private String createdBy;
     private AssignedWorker assignedTo;
-
     private ReportStatus status;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime resolvedAt;
 
-    public enum ReportStatus {
-        OPEN("Open"),
-        IN_PROGRESS("In Progress"),
-        CLOSED("Closed");
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-        private final String displayName;
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
-        ReportStatus(String displayName) {
-            this.displayName = displayName;
-        }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-        public String getDisplayName() {
-            return displayName;
-        }
-    }
+    public Location getLocation() { return location; }
+    public void setLocation(Location location) { this.location = location; }
+
+    public String getImageDataUrl() { return imageDataUrl; }
+    public void setImageDataUrl(String imageDataUrl) { this.imageDataUrl = imageDataUrl; }
+
+    public String getCreatedBy() { return createdBy; }
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
+
+    public AssignedWorker getAssignedTo() { return assignedTo; }
+    public void setAssignedTo(AssignedWorker assignedTo) { this.assignedTo = assignedTo; }
+
+    public ReportStatus getStatus() { return status; }
+    public void setStatus(ReportStatus status) { this.status = status; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public LocalDateTime getResolvedAt() { return resolvedAt; }
+    public void setResolvedAt(LocalDateTime resolvedAt) { this.resolvedAt = resolvedAt; }
 }

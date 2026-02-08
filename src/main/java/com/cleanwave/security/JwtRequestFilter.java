@@ -1,5 +1,6 @@
 package com.cleanwave.security;
 
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,12 +24,19 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Autowired
     private CustomUserDetailsService userDetailsService;
 
-    // ✅ CRITICAL FIX: Skip JWT for frontend & auth
+    // 🔥 CRITICAL FIX: Skip JWT for frontend, auth AND error dispatch
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
+
+        // 🔑 THIS IS THE KEY FIX
+        if (request.getDispatcherType() == DispatcherType.ERROR) {
+            return true;
+        }
+
         String path = request.getServletPath();
 
         return path.equals("/")
+                || path.equals("/error")
                 || path.endsWith(".html")
                 || path.startsWith("/css/")
                 || path.startsWith("/js/")
@@ -44,7 +52,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        final String authHeader = request.getHeader("Authorization");
+        String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -59,6 +67,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
             if (jwtUtil.validateToken(jwt, userDetails)) {
+
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,

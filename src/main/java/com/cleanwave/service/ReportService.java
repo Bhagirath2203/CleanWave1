@@ -126,7 +126,7 @@ public class ReportService {
         emailService.sendComplaintStatusUpdateEmail(
                 report.getCreatedBy(),
                 reportId,
-                newStatus.getDisplayName()
+                newStatus.name()
         );
 
         return report;

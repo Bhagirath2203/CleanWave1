@@ -19,6 +19,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -40,9 +41,10 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
 
-                // ✅ STATIC FRONTEND FILES (CRITICAL)
+                // 🔓 FRONTEND + ERROR (VERY IMPORTANT)
                 .requestMatchers(
                     "/",
+                    "/error",
                     "/index.html",
                     "/login.html",
                     "/signup.html",
@@ -55,7 +57,7 @@ public class SecurityConfig {
                     "/favicon.ico"
                 ).permitAll()
 
-                // ✅ AUTH ENDPOINTS
+                // 🔓 AUTH
                 .requestMatchers("/api/auth/**").permitAll()
 
                 // 🔐 ROLE-BASED APIs
@@ -63,23 +65,16 @@ public class SecurityConfig {
                 .requestMatchers("/api/worker/**").hasRole("WORKER")
                 .requestMatchers("/api/reports/**").authenticated()
 
-                // 🔐 EVERYTHING ELSE
                 .anyRequest().authenticated()
             )
             .exceptionHandling(exception -> exception
-                .authenticationEntryPoint((request, response, authException) -> {
+                .authenticationEntryPoint((request, response, ex) -> {
+                    response.setContentType("application/json");
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.setContentType("application/json");
                     response.getWriter().write("{\"error\":\"Unauthorized\"}");
-                })
-                .accessDeniedHandler((request, response, accessDeniedException) -> {
-                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                    response.setContentType("application/json");
-                    response.getWriter().write("{\"error\":\"Forbidden\"}");
                 })
             );
 
-        // ✅ JWT FILTER
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -89,7 +84,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(List.of("*"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 

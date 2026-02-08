@@ -1,9 +1,13 @@
 package com.cleanwave.model;
 
-import lombok.Data;
-
-@Data
 public class Location {
-    private Double lat;
-    private Double lng;
+
+    private double lat;
+    private double lng;
+
+    public double getLat() { return lat; }
+    public void setLat(double lat) { this.lat = lat; }
+
+    public double getLng() { return lng; }
+    public void setLng(double lng) { this.lng = lng; }
 }

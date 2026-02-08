@@ -44,6 +44,10 @@ public class AuthController {
                 auth.getAuthorities().iterator().next().getAuthority()
         );
 
-        return ResponseEntity.ok(new AuthResponse(token));
+        String email = request.getEmail();
+        String role = auth.getAuthorities().iterator().next().getAuthority();
+        String username = email.split("@")[0]; // Extract username from email
+
+        return ResponseEntity.ok(new AuthResponse(token, email, username, role));
     }
 }
