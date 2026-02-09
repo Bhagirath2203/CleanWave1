@@ -1,7 +1,9 @@
 package com.cleanwave.controller;
 
 import com.cleanwave.model.Report;
+import com.cleanwave.model.RoleRequest;
 import com.cleanwave.model.User;
+import com.cleanwave.service.RoleRequestService;
 import com.cleanwave.service.ReportService;
 import com.cleanwave.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,9 @@ public class AdminController {
     
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private RoleRequestService roleRequestService;
     
     @GetMapping("/reports")
     public ResponseEntity<List<Report>> getAllReports() {
@@ -33,16 +38,39 @@ public class AdminController {
     public ResponseEntity<List<User>> getAllWorkers() {
         return ResponseEntity.ok(userService.getAllWorkers());
     }
+
+    @GetMapping("/worker-requests")
+    public ResponseEntity<List<RoleRequest>> getPendingWorkerRequests() {
+        return ResponseEntity.ok(roleRequestService.getPendingWorkerRequests());
+    }
     
     @PutMapping("/reports/{id}/assign")
     public ResponseEntity<?> assignWorker(@PathVariable String id, @RequestBody Map<String, String> body) {
         try {
-            String workerEmail = body.get("workerEmail");
-            Report report = reportService.assignWorker(id, workerEmail);
+            String workerId = body.get("workerId");
+            Report report = reportService.assignWorker(id, workerId);
             return ResponseEntity.ok(report);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @DeleteMapping("/workers/{id}")
+    public ResponseEntity<Void> deleteWorker(@PathVariable String id) {
+        userService.deleteWorker(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/worker-requests/{id}/approve")
+    public ResponseEntity<Void> approveWorkerRequest(@PathVariable String id) {
+        roleRequestService.approveWorkerRequest(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/worker-requests/{id}/reject")
+    public ResponseEntity<Void> rejectWorkerRequest(@PathVariable String id) {
+        roleRequestService.rejectWorkerRequest(id);
+        return ResponseEntity.ok().build();
     }
     
     @PutMapping("/reports/{id}/status")

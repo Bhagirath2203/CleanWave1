@@ -10,10 +10,10 @@
     <nav class="navbar">
         <div class="container">
             <div class="nav-brand">
-                <h1>🌊 CleanWave</h1>
+                <h1>🌊 CleanWave - Worker</h1>
             </div>
             <div class="nav-links">
-                <span id="userEmail"></span>
+                <span id="userName" class="user-name"></span>
                 <button onclick="logout()" class="btn btn-secondary">Logout</button>
             </div>
         </div>
@@ -21,25 +21,48 @@
 
     <div class="dashboard-container">
         <div class="container">
-            <h1>Worker Dashboard</h1>
-            
+            <div class="dashboard-header">
+                <h1>Your Work Dashboard</h1>
+                <p>Manage your assigned tasks</p>
+            </div>
+
+            <!-- Quick Stats -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <h3>My Assignments</h3>
+                    <div class="stat-icon">📋</div>
+                    <h3>Total Assignments</h3>
                     <p id="totalAssignments" class="stat-number">0</p>
                 </div>
                 <div class="stat-card">
+                    <div class="stat-icon">🔛</div>
                     <h3>In Progress</h3>
                     <p id="inProgressCount" class="stat-number">0</p>
                 </div>
                 <div class="stat-card">
+                    <div class="stat-icon">✅</div>
                     <h3>Completed</h3>
                     <p id="completedCount" class="stat-number">0</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏳</div>
+                    <h3>Pending Start</h3>
+                    <p id="pendingCount" class="stat-number">0</p>
                 </div>
             </div>
 
             <div class="reports-section">
                 <h2>My Assigned Tasks</h2>
+                <div class="filter-section">
+                    <label>Filter by Status:</label>
+                    <select id="statusFilter" onchange="filterTasks()" class="filter-select">
+                        <option value="">All Tasks</option>
+                        <option value="OPEN">Pending Start</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="CLOSED">Completed</option>
+                    </select>
+                </div>
+                <div id="loadingIndicator" class="loading-indicator" style="display:none;">Loading tasks...</div>
+                <div id="noTasks" class="error-message" style="display:none;">No assigned tasks yet.</div>
                 <div id="reportsContainer" class="reports-grid"></div>
             </div>
         </div>
@@ -49,21 +72,39 @@
     <div id="statusModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeStatusModal()">&times;</span>
-            <h2>Update Status</h2>
+            <h2>Update Task Status</h2>
             <form id="statusForm">
                 <input type="hidden" id="reportId">
+                <div id="taskInfo" class="info-box"></div>
                 <div class="form-group">
-                    <label for="statusSelect">New Status</label>
+                    <label for="statusSelect">New Status *</label>
                     <select id="statusSelect" required>
                         <option value="IN_PROGRESS">In Progress</option>
-                        <option value="CLOSED">Closed</option>
+                        <option value="CLOSED">Mark as Completed</option>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label for="notes">Work Notes (Optional)</label>
+                    <textarea id="notes" rows="3" placeholder="Add notes about the work done..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="photo">Upload Completion Photo</label>
+                    <input type="file" id="photo" accept="image/*">
                 </div>
                 <button type="submit" class="btn btn-primary btn-block">Update Status</button>
             </form>
         </div>
     </div>
 
+    <!-- Task Details Modal -->
+    <div id="taskDetailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeTaskDetailsModal()">&times;</span>
+            <div id="taskDetailsContent"></div>
+        </div>
+    </div>
+
+    <script src="/js/app-core.js"></script>
     <script src="/js/worker-dashboard.js"></script>
 </body>
 </html>

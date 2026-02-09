@@ -1,5 +1,3 @@
-const API_URL = "http://localhost:8080/api";
-
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -7,13 +5,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   const password = document.getElementById("password").value;
 
   try {
-    const response = await fetch(`${API_URL}/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ email, password })
-    });
+    const response = await cwApi.postJson("/auth/login", { email, password }, { auth: false, raw: true });
 
     if (!response.ok) {
       showError("Invalid email or password");

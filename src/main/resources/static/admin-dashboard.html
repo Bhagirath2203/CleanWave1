@@ -10,10 +10,10 @@
     <nav class="navbar">
         <div class="container">
             <div class="nav-brand">
-                <h1>🌊 CleanWave</h1>
+                <h1>🌊 CleanWave Admin</h1>
             </div>
             <div class="nav-links">
-                <span id="userEmail"></span>
+                <span id="userName" class="user-name"></span>
                 <button onclick="logout()" class="btn btn-secondary">Logout</button>
             </div>
         </div>
@@ -21,37 +21,55 @@
 
     <div class="dashboard-container">
         <div class="container">
-            <h1>Admin Dashboard</h1>
-            
+            <div class="dashboard-header">
+                <h1>Administrative Dashboard</h1>
+                <p>Manage reports and assign workers</p>
+            </div>
+
+            <!-- Quick Stats -->
             <div class="stats-grid">
                 <div class="stat-card">
+                    <div class="stat-icon">📋</div>
                     <h3>Total Reports</h3>
                     <p id="totalReports" class="stat-number">0</p>
                 </div>
                 <div class="stat-card">
+                    <div class="stat-icon">🔔</div>
                     <h3>Open Reports</h3>
                     <p id="openReports" class="stat-number">0</p>
                 </div>
                 <div class="stat-card">
+                    <div class="stat-icon">🔛</div>
                     <h3>In Progress</h3>
                     <p id="inProgressReports" class="stat-number">0</p>
                 </div>
                 <div class="stat-card">
+                    <div class="stat-icon">✅</div>
                     <h3>Closed</h3>
                     <p id="closedReports" class="stat-number">0</p>
                 </div>
             </div>
 
+            <!-- Management Buttons -->
+            <div class="dashboard-actions">
+                <button onclick="showWorkerManagement()" class="btn btn-secondary btn-large">👳 Manage Workers</button>
+                <button onclick="exportReports()" class="btn btn-secondary btn-large">📊 Export Reports</button>
+            </div>
+
             <div class="reports-section">
                 <h2>All Reports</h2>
                 <div class="filter-section">
-                    <select id="statusFilter" onchange="filterReports()">
-                        <option value="">All Status</option>
+                    <label>Filter by Status:</label>
+                    <select id="statusFilter" onchange="filterReports()" class="filter-select">
+                        <option value="">All Reports</option>
                         <option value="OPEN">Open</option>
                         <option value="IN_PROGRESS">In Progress</option>
                         <option value="CLOSED">Closed</option>
                     </select>
+                    <label style="margin-left: 2rem;">Search:</label>
+                    <input type="text" id="searchInput" placeholder="Search by category..." onkeyup="filterReports()" class="search-input">
                 </div>
+                <div id="loadingIndicator" class="loading-indicator" style="display:none;">Loading reports...</div>
                 <div id="reportsContainer" class="reports-grid"></div>
             </div>
         </div>
@@ -61,18 +79,60 @@
     <div id="assignModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeAssignModal()">&times;</span>
-            <h2>Assign Worker</h2>
+            <h2>Assign Worker to Report</h2>
             <form id="assignForm">
                 <input type="hidden" id="reportId">
                 <div class="form-group">
-                    <label for="workerSelect">Select Worker</label>
-                    <select id="workerSelect" required></select>
+                    <label>Report Details</label>
+                    <div id="reportDetails" class="info-box"></div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block">Assign</button>
+                <div class="form-group">
+                    <label for="workerSelect">Select Worker *</label>
+                    <select id="workerSelect" required>
+                        <option value="">Loading workers...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="priority">Priority *</label>
+                    <select id="priority" required>
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM" selected>Medium</option>
+                        <option value="HIGH">High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="deadline">Deadline (Optional)</label>
+                    <input type="date" id="deadline">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Assign Worker</button>
             </form>
         </div>
     </div>
 
+    <!-- Worker Management Modal -->
+    <div id="workerModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeWorkerModal()">&times;</span>
+            <h2>👳 Worker Management</h2>
+            <div class="filter-section">
+                <input type="text" id="workerSearch" placeholder="Search workers..." onkeyup="filterWorkers()" class="search-input">
+            </div>
+            <h3>Active Workers</h3>
+            <div id="workersContainer" class="workers-grid"></div>
+            <h3 style="margin-top:1.5rem;">Pending Worker Requests</h3>
+            <div id="workerRequestsContainer" class="workers-grid"></div>
+        </div>
+    </div>
+
+    <!-- Report Details Modal -->
+    <div id="reportDetailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeReportDetailsModal()">&times;</span>
+            <div id="reportDetailsContent"></div>
+        </div>
+    </div>
+
+    <script src="/js/app-core.js"></script>
     <script src="/js/admin-dashboard.js"></script>
 </body>
 </html>

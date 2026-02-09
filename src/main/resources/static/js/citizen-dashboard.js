@@ -1,10 +1,5 @@
-const API_URL = "http://localhost:8080/api";
-const token = localStorage.getItem("token");
-const userEmail = localStorage.getItem("email");
-
-if (!token) {
-  window.location.href = "/login.html";
-}
+cwAuth.requireRole("CITIZEN");
+const { token, email: userEmail } = cwAuth.getAuth();
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
@@ -15,20 +10,17 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Character counter
-document.getElementById('description')?.addEventListener('input', function() {
-  const count = this.value.length;
-  document.getElementById('charCount').textContent = `${count}/500 characters`;
-});
+const descriptionEl = document.getElementById('description');
+if (descriptionEl) {
+  descriptionEl.addEventListener('input', function() {
+    const count = this.value.length;
+    document.getElementById('charCount').textContent = `${count}/500 characters`;
+  });
+}
 
 async function loadStats() {
   try {
-    const response = await fetch(`${API_URL}/reports/my-reports`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    if (!response.ok) return;
-
-    const reports = await response.json();
+    const reports = await cwApi.get("/reports/my-reports");
     const total = reports.length;
     const resolved = reports.filter(r => r.status === 'CLOSED').length;
     const inProgress = reports.filter(r => r.status === 'IN_PROGRESS').length;
@@ -46,13 +38,7 @@ async function loadStats() {
 async function loadReports() {
   try {
     document.getElementById('loadingIndicator').style.display = 'block';
-    const response = await fetch(`${API_URL}/reports/my-reports`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    if (!response.ok) throw new Error('Failed to load reports');
-
-    const reports = await response.json();
+    const reports = await cwApi.get("/reports/my-reports");
     document.getElementById('loadingIndicator').style.display = 'none';
 
     if (reports.length === 0) {
@@ -62,22 +48,26 @@ async function loadReports() {
     }
 
     document.getElementById('noReports').style.display = 'none';
-    document.getElementById('reportsContainer').innerHTML = reports.map(r => `
-      <div class="report-card">
+    document.getElementById('reportsContainer').innerHTML = reports.map(r => {
+      const locationText = r.location
+        ? `${r.location.lat.toFixed(4)}, ${r.location.lng.toFixed(4)}`
+        : 'Not specified';
+      return `
+      <div class="report-card" data-report-id="${r.id}">
         <div class="report-header">
           <h3>${r.category}</h3>
           <span class="status-badge status-${r.status?.toLowerCase() || 'open'}">${r.status || 'OPEN'}</span>
         </div>
         <div class="report-detail"><strong>Description:</strong> ${r.description?.substring(0, 100)}...</div>
-        <div class="report-detail"><strong>Location:</strong> ${r.location?.name || 'Not specified'}</div>
+        <div class="report-detail"><strong>Location:</strong> ${locationText}</div>
         <div class="report-detail"><strong>Date:</strong> ${new Date(r.createdAt).toLocaleDateString()}</div>
-        ${r.image ? `<img src="data:image/jpeg;base64,${r.image}" alt="Report image" class="report-image">` : ''}
+        ${r.imageDataUrl ? `<img src="${r.imageDataUrl}" alt="Report image" class="report-image">` : ''}
         <div class="report-actions">
           <button onclick="showReportDetails(${r.id})" class="btn btn-primary btn-small">View Details</button>
           ${r.status === 'OPEN' ? `<button onclick="deleteReport(${r.id})" class="btn btn-danger btn-small">Delete</button>` : ''}
         </div>
       </div>
-    `).join('');
+    `; }).join('');
   } catch (error) {
     console.error('Error loading reports:', error);
     document.getElementById('reportsContainer').innerHTML = '<div class="error-message">Failed to load reports. Please try again later.</div>';
@@ -124,17 +114,9 @@ async function deleteReport(id) {
   if (!confirm('Are you sure you want to delete this report?')) return;
   
   try {
-    const response = await fetch(`${API_URL}/reports/${id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    if (response.ok) {
-      alert('Report deleted successfully!');
-      loadReports();
-    } else {
-      alert('Failed to delete report.');
-    }
+    await cwApi.delete(`/reports/${id}`);
+    alert('Report deleted successfully!');
+    loadReports();
   } catch (error) {
     console.error('Error deleting report:', error);
   }
@@ -159,35 +141,27 @@ document.getElementById('reportForm')?.addEventListener('submit', async function
       locationData = await getLocation();
     }
 
-    const formData = new FormData();
-    formData.append('category', category);
-    formData.append('description', description);
-    
-    if (locationData) {
-      formData.append('latitude', locationData.latitude);
-      formData.append('longitude', locationData.longitude);
-    }
-
     const imageFile = document.getElementById('image').files[0];
-    if (imageFile) {
-      formData.append('image', imageFile);
+    if (!imageFile) {
+      alert('Please upload an image as proof of the issue.');
+      return;
     }
+    const imageDataUrl = await fileToDataUrl(imageFile);
 
-    const response = await fetch(`${API_URL}/reports`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData
-    });
+    const payload = {
+      category,
+      description,
+      location: locationData
+        ? { lat: locationData.latitude, lng: locationData.longitude }
+        : null,
+      imageDataUrl
+    };
 
-    if (response.ok) {
-      alert('Report submitted successfully!');
-      closeReportModal();
-      loadReports();
-      loadStats();
-    } else {
-      const error = await response.text();
-      document.getElementById('reportError').innerHTML = `Error: ${error}`;
-    }
+    await cwApi.postJson("/reports", payload);
+    alert('Report submitted successfully!');
+    closeReportModal();
+    loadReports();
+    loadStats();
   } catch (error) {
     console.error('Error submitting report:', error);
     document.getElementById('reportError').innerHTML = 'Error submitting report. Please try again.';
@@ -220,50 +194,70 @@ function getLocation() {
   });
 }
 
-// Chatbot
-function showChatbot() {
-  document.getElementById('chatbotModal').classList.add('show');
-  document.getElementById('chatMessages').innerHTML = '<div class="chat-message bot">Hello! How can I help you today?</div>';
+// Help Assistant (menu-based, no free text)
+const assistantResponses = {
+  report: `To submit a report:
+1. Click the "Report New Issue" button.
+2. Choose the category (Road Damage, Waste Management, etc.).
+3. Describe the issue in detail.
+4. (Optional) Upload a clear photo of the problem.
+5. Keep "Use Current Location" checked so we can find the spot.
+6. Click "Submit Report".
+
+You can then track its status from this dashboard.`,
+  categories: `We handle these categories:
+- Road Damage: Potholes, broken roads.
+- Waste Management: Garbage overflow, littering.
+- Street Light: Lights not working or flickering.
+- Water Supply: Leaks, low pressure, water quality.
+- Drainage: Blocked drains, flooding.
+- Other: Any civic issue that doesn't fit above.`,
+  status: `Each report has a status:
+- OPEN: Just submitted, waiting for review.
+- IN_PROGRESS: Assigned to a worker and being resolved.
+- CLOSED: The issue has been resolved.
+
+You can see the status for each report card and in your stats.`,
+  photos: `Photos help us:
+- Verify the issue quickly.
+- Understand how serious it is.
+- Assign the right team.
+
+Try to upload clear photos that show the problem from useful angles.`,
+  location: `Location helps us:
+- Find the exact place of the issue.
+- Send workers to the right spot.
+- Understand which areas have more problems.
+
+Please keep location services enabled and make sure the map/coordinates look correct before submitting.`,
+  notifications: `Email notifications:
+- You'll get an email when your report is created.
+- You'll get emails when the status changes (for example: to IN_PROGRESS or CLOSED).
+
+Make sure your email is correct when you sign up so you don't miss updates.`
+};
+
+function showHelpAssistant() {
+  const modal = document.getElementById('chatbotModal');
+  const messagesDiv = document.getElementById('chatMessages');
+  modal.classList.add('show');
+  messagesDiv.innerHTML =
+    '<div class="chat-message bot">Hi! I can help you understand how CleanWave works. Choose a topic below to learn more.</div>';
 }
 
 function closeChatbot() {
   document.getElementById('chatbotModal').classList.remove('show');
 }
 
-async function sendMessage() {
-  const input = document.getElementById('chatInput');
-  const message = input.value.trim();
-  
-  if (!message) return;
-
+function showAssistantTopic(topicKey) {
   const messagesDiv = document.getElementById('chatMessages');
-  messagesDiv.innerHTML += `<div class="chat-message user">${message}</div>`;
-  input.value = '';
-
-  try {
-    const response = await fetch(`${API_URL}/chatbot`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({ message })
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      messagesDiv.innerHTML += `<div class="chat-message bot">${data.response}</div>`;
-    }
-  } catch (error) {
-    console.error('Error sending message:', error);
-  }
-  
+  const text = assistantResponses[topicKey] || assistantResponses.report;
+  messagesDiv.innerHTML += `<div class="chat-message bot">${text.replace(/\n/g, '<br>')}</div>`;
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
 function logout() {
-  localStorage.clear();
-  window.location.href = "/login.html";
+  cwAuth.logout();
 }
 
 // Modal close on outside click
@@ -272,4 +266,13 @@ window.onclick = function(event) {
   const chatbotModal = document.getElementById('chatbotModal');
   if (event.target == reportModal) reportModal.classList.remove('show');
   if (event.target == chatbotModal) chatbotModal.classList.remove('show');
+}
+
+async function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
